@@ -1,0 +1,5 @@
+#
+#Mon Oct 18 13:36:26 CST 2021
+com.cn.springflowable.controller.ProcessController=org.springframework.stereotype.Component
+com.cn.springflowable.SpringFlowableApplication=org.springframework.stereotype.Component,org.springframework.boot.SpringBootConfiguration
+com.cn.springflowable.service.FlowableService=org.springframework.stereotype.Component
