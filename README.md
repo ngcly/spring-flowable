@@ -2,7 +2,13 @@
 
 ## Flowable 流程图绘画工具  
 到官网去下载 flowable-ui 项目，下载地址为：https://flowable.com/open-source/downloads  
-运行起来后就可以进行界面化的流程图绘画了。  
+或者使用docker
+```
+docker pull flowable/flowable-ui  
+docker run -itd --name flowable-ui -p 8081:8080 flowable/flowable-ui
+```
+运行起来后就可以进行界面化的流程图绘画了。   
+访问路径为 http://localhost:8081/flowable-ui  
 flowable-ui 默认相关信息如下：  
 端口: 8080  
 账号: admin  
