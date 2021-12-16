@@ -2,6 +2,7 @@ package com.cn.springflowable.service;
 
 import net.bytebuddy.utility.RandomString;
 import org.flowable.engine.*;
+import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.test.ConfigurationResource;
 import org.flowable.engine.test.FlowableTest;
 import org.flowable.task.api.Task;
@@ -25,15 +26,16 @@ public class FlowableServiceTest {
     private static RuntimeService runtimeService;
     private static TaskService taskService;
     private static HistoryService historyService;
+    private static Deployment deployment;
 
     @BeforeAll
     static void setUp(ProcessEngine processEngine) {
-        processEngine = processEngine;
+        FlowableServiceTest.processEngine = processEngine;
         runtimeService = processEngine.getRuntimeService();
         taskService = processEngine.getTaskService();
         historyService = processEngine.getHistoryService();
 
-        processEngine.getRepositoryService()
+        deployment = processEngine.getRepositoryService()
                 .createDeployment()
                 .addClasspathResource("./processes/holiday-request.bpmn20.xml")
                 .deploy();
@@ -41,7 +43,7 @@ public class FlowableServiceTest {
 
     @AfterAll
     static void tearDown() {
-
+        processEngine.getRepositoryService().deleteDeployment(deployment.getId(),true);
     }
 
     @Test
