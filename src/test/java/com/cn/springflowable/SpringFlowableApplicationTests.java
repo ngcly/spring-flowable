@@ -1,6 +1,7 @@
 package com.cn.springflowable;
 
 import com.cn.springflowable.service.FlowableService;
+import net.bytebuddy.utility.RandomString;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.task.api.Task;
 import org.junit.jupiter.api.Assertions;
@@ -10,7 +11,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
+/**
+ * 集成测试
+ */
 @SpringBootTest
 class SpringFlowableApplicationTests {
 
@@ -25,7 +30,8 @@ class SpringFlowableApplicationTests {
     @Test
     public void startProcessTest(){
         String processId = "holiday-request";
-        Map<String,Object> variables = Map.of("employee","jack","nrOfHolidays",4,"description","take holiday");
+        Map<String,Object> variables = Map.of("employee","test_"+ new RandomString(4).nextString(),
+                "nrOfHolidays",new Random().nextInt(10),"description","take holiday");
         String instanceId = flowableService.startProcess(processId,variables);
         Assertions.assertNotNull(instanceId);
         System.out.println(instanceId);
