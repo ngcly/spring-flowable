@@ -16,10 +16,10 @@ import org.flowable.image.ProcessDiagramGenerator;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -44,7 +44,7 @@ public class FlowableService {
      * @param map 启动相关参数
      * @return String
      */
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public String startProcess(String processKey, Map<String, Object> map) {
         //设置启动用户id
         identityService.setAuthenticatedUserId("cly");
@@ -54,7 +54,7 @@ public class FlowableService {
 
     public List<Task> getTaskList(String instanceId) {
         return taskService.createTaskQuery()
-                .caseInstanceId(instanceId)
+                .processInstanceId(instanceId)
                 .orderByTaskCreateTime()
                 .desc()
                 .list();
@@ -65,7 +65,7 @@ public class FlowableService {
      * @param taskId 任务id
      * @param map 相关处理参数
      */
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void dealTask(String taskId, Map<String, Object> map) {
         Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
         //添加审批意见 this.addProcessComment();
@@ -85,7 +85,7 @@ public class FlowableService {
      * @param map 相关处理参数
      * @return Boolean
      */
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Boolean skipTask(String instanceId, String newKey, Map<String,Object> map){
         Task task = taskService.createTaskQuery()
                 .processInstanceId(instanceId)
@@ -153,7 +153,7 @@ public class FlowableService {
      * @param instanceId 实例id
      * @return StreamingResponseBody
      */
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public StreamingResponseBody getProcessDiagram(String instanceId) {
         ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
                 .processInstanceId(instanceId)
