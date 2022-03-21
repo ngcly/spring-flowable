@@ -2,8 +2,6 @@ package com.cn.springflowable.service;
 
 import net.bytebuddy.utility.RandomString;
 import org.flowable.engine.*;
-import org.flowable.engine.repository.Deployment;
-import org.flowable.engine.test.ConfigurationResource;
 import org.flowable.engine.test.FlowableTest;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
@@ -20,50 +18,36 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author ngcly
  */
 @FlowableTest
-@ConfigurationResource
 public class FlowableServiceTest {
-    private static ProcessEngine processEngine;
-    private static RuntimeService runtimeService;
-    private static TaskService taskService;
-    private static HistoryService historyService;
-    private static Deployment deployment;
+    private static String processInstanceId;
 
     @BeforeAll
     static void setUp(ProcessEngine processEngine) {
-        FlowableServiceTest.processEngine = processEngine;
-        runtimeService = processEngine.getRuntimeService();
-        taskService = processEngine.getTaskService();
-        historyService = processEngine.getHistoryService();
 
-        deployment = processEngine.getRepositoryService()
-                .createDeployment()
-                .addClasspathResource("./processes/holiday-request.bpmn20.xml")
-                .deploy();
     }
 
     @AfterAll
-    static void tearDown() {
-        processEngine.getRepositoryService().deleteDeployment(deployment.getId(),true);
+    static void tearDown(ProcessEngine processEngine) {
+
     }
 
     @Test
-    void startProcesses(){
+    void startProcesses(RuntimeService runtimeService){
         Map<String,Object> variables = Map.of("employee","test_"+ new RandomString(4).nextString(),
                 "nrOfHolidays", new Random().nextInt(10),"description","take holiday");
-        runtimeService.startProcessInstanceByKey("holiday-request",variables);
+        processInstanceId = runtimeService.startProcessInstanceByKey("holiday-request",variables).getProcessInstanceId();
     }
 
     @Test
-    void testHolidayProcess() {
-        Task task = taskService.createTaskQuery().singleResult();
+    void testHolidayProcess(RuntimeService runtimeService,TaskService taskService) {
+        Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
         System.out.println("task info => "+ task.getId()+": "+task.getName());
 
         taskService.complete(task.getId(), Map.of("approved",false));
-        assertEquals(0, runtimeService.createProcessInstanceQuery().count());
     }
 
     @Test
-    void getTaskTest(){
+    void getTaskTest(HistoryService historyService, TaskService taskService){
         var list = historyService.createHistoricTaskInstanceQuery().list();
         list.forEach(HistoricTaskInstance::getDeleteReason);
         List<Task> tasks = taskService.createTaskQuery().list();

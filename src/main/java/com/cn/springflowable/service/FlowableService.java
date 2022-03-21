@@ -53,6 +53,7 @@ public class FlowableService {
     }
 
     public List<Task> getTaskList(String instanceId) {
+        //此处直接这样返回 在controller层 会因为懒加载的问题导致格式化为json而报错 要解决的话 需要在此处遍历将该Task赋值到你自定义的对象上
         return taskService.createTaskQuery()
                 .processInstanceId(instanceId)
                 .orderByTaskCreateTime()
@@ -177,18 +178,18 @@ public class FlowableService {
             List<HistoricActivityInstance> historicEnds = historyService.createHistoricActivityInstanceQuery()
                     .processInstanceId(instanceId).activityType(BpmnXMLConstants.ELEMENT_EVENT_END).list();
 
-            activeActivityIds = new ArrayList<>();
-            historicEnds.forEach(historicActivityInstance ->
-                    activeActivityIds.add(historicActivityInstance.getActivityId()));
+            activeActivityIds = historicEnds.stream()
+                    .map(HistoricActivityInstance::getActivityId)
+                    .collect(Collectors.toList());
         }
 
-        List<String> highLightedFlows = new ArrayList<>();
         // 3.获取所有的历史轨迹线对象
         List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
                 .processInstanceId(instanceId).activityType(BpmnXMLConstants.ELEMENT_SEQUENCE_FLOW).list();
 
-        historicActivityInstances.forEach(historicActivityInstance ->
-                highLightedFlows.add(historicActivityInstance.getActivityId()));
+        List<String> highLightedFlows = historicActivityInstances.stream()
+                .map(HistoricActivityInstance::getActivityId)
+                .collect(Collectors.toList());
 
         BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);
         ProcessEngineConfiguration processEngConfig = processEngine.getProcessEngineConfiguration();

@@ -27,6 +27,7 @@ public class SpringFlowableApplication {
         return strings -> {
             System.out.println("Number of process definitions : "
                     + repositoryService.createProcessDefinitionQuery().count());
+            System.out.println("Number of deployment: "+ repositoryService.createDeploymentQuery().count());
             System.out.println("Number of process instance: " + runtimeService.createProcessInstanceQuery().count());
             System.out.println("Number of tasks after process start: " + taskService.createTaskQuery().count());
         };
