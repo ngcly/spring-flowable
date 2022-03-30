@@ -1,14 +1,17 @@
 package com.cn.springflowable.controller;
 
 import com.cn.springflowable.service.FlowableService;
+import lombok.RequiredArgsConstructor;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
-import org.flowable.task.api.Task;
+import org.flowable.engine.runtime.ActivityInstance;
+import org.flowable.rest.service.api.runtime.process.ExecutionResponse;
+import org.flowable.rest.service.api.runtime.process.ProcessInstanceResponse;
+import org.flowable.rest.service.api.runtime.task.TaskResponse;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -16,9 +19,9 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/flowable")
+@RequiredArgsConstructor
 public class ProcessController {
-    @Resource
-    private FlowableService flowableService;
+    private final FlowableService flowableService;
 
     /**
      * 开始流程
@@ -31,14 +34,29 @@ public class ProcessController {
         return flowableService.startProcess(processKey,map);
     }
 
+    @GetMapping("/process/info/{instanceId}")
+    public ProcessInstanceResponse getProcessInstance(@PathVariable String instanceId) {
+        return flowableService.getProcessInstance(instanceId);
+    }
+
     /**
      * 获取当前任务记录
      * @param instanceId 流程实例id
      * @return List
      */
     @GetMapping("/task/logs/{instanceId}")
-    public List<Task> getTaskList(@PathVariable String instanceId) {
+    public List<TaskResponse> getTaskList(@PathVariable String instanceId) {
         return flowableService.getTaskList(instanceId);
+    }
+
+    @GetMapping("/execution/info/{instanceId}")
+    public List<ExecutionResponse> getExecutionList(@PathVariable String instanceId) {
+        return flowableService.getExecution(instanceId);
+    }
+
+    @GetMapping("/activity/instance/{instanceId}")
+    public List<ActivityInstance> getActivityList(@PathVariable String instanceId) {
+        return flowableService.getActivity(instanceId);
     }
 
     /**

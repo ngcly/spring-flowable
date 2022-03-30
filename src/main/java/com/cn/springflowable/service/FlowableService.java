@@ -1,18 +1,25 @@
 package com.cn.springflowable.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
+import org.flowable.bpmn.model.Activity;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.EndEvent;
 import org.flowable.engine.*;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.engine.task.Comment;
 import org.flowable.image.ProcessDiagramGenerator;
+import org.flowable.rest.service.api.RestResponseFactory;
+import org.flowable.rest.service.api.runtime.process.ExecutionResponse;
+import org.flowable.rest.service.api.runtime.process.ProcessInstanceResponse;
+import org.flowable.rest.service.api.runtime.task.TaskResponse;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.stereotype.Service;
@@ -52,11 +59,36 @@ public class FlowableService {
         return processInstance.getId();
     }
 
-    public List<Task> getTaskList(String instanceId) {
-        //此处直接这样返回 在controller层 会因为懒加载的问题导致格式化为json而报错 要解决的话 需要在此处遍历将该Task赋值到你自定义的对象上
-        return taskService.createTaskQuery()
+    public ProcessInstanceResponse getProcessInstance(String instanceId) {
+        RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
+                .processInstanceId(instanceId)
+                .singleResult();
+        return restResponse.createProcessInstanceResponse(processInstance);
+    }
+
+    public List<TaskResponse> getTaskList(String instanceId) {
+        //此处直接这样返回 在controller层 会因为懒加载的问题导致格式化为json而报错 所以采用官方rest包装
+        List<Task> list = taskService.createTaskQuery()
                 .processInstanceId(instanceId)
                 .orderByTaskCreateTime()
+                .desc()
+                .list();
+
+        RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
+        return restResponse.createTaskResponseList(list);
+    }
+
+    public List<ExecutionResponse> getExecution(String instanceId) {
+        List<Execution> list = runtimeService.createExecutionQuery().processInstanceId(instanceId).list();
+        RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
+        return restResponse.createExecutionResponseList(list);
+    }
+
+    public List<ActivityInstance> getActivity(String instanceId) {
+        return runtimeService.createActivityInstanceQuery()
+                .processInstanceId(instanceId)
+                .orderByActivityInstanceEndTime()
                 .desc()
                 .list();
     }

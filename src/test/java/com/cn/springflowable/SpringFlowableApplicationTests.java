@@ -3,12 +3,13 @@ package com.cn.springflowable;
 import com.cn.springflowable.service.FlowableService;
 import net.bytebuddy.utility.RandomString;
 import org.flowable.engine.history.HistoricActivityInstance;
+import org.flowable.rest.service.api.runtime.task.TaskResponse;
 import org.flowable.task.api.Task;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -19,7 +20,7 @@ import java.util.Random;
 @SpringBootTest
 class SpringFlowableApplicationTests {
 
-    @Resource
+    @Autowired
     private FlowableService flowableService;
 
 
@@ -40,7 +41,7 @@ class SpringFlowableApplicationTests {
     @Test
     public void getTaskTest(){
         String instanceId = "cf6310ef-2d8c-11ec-a762-acde48001122";
-        List<Task> tasks = flowableService.getTaskList(instanceId);
+        List<TaskResponse> tasks = flowableService.getTaskList(instanceId);
         Assertions.assertNotNull(tasks);
         tasks.forEach(task -> System.out.println(task.getId()+": "+task.getName()));
     }

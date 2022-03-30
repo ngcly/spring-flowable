@@ -16,10 +16,14 @@
     </sequenceFlow>
     <userTask id="holidayApprovedTask" name="Holiday approved" flowable:assignee="${employee}"/>
     <sequenceFlow id="sid-133ebe23-29ba-4af1-af75-bc1f5b650377" sourceRef="externalSystemCall" targetRef="holidayApprovedTask"/>
-    <endEvent id="approveEnd"/>
-    <sequenceFlow id="sid-c3716340-ab4d-4efb-8b6d-7e86e9fc092a" sourceRef="holidayApprovedTask" targetRef="approveEnd"/>
+    <sequenceFlow id="sid-c3716340-ab4d-4efb-8b6d-7e86e9fc092a" sourceRef="holidayApprovedTask" targetRef="waitTask"/>
     <endEvent id="rejectEnd"/>
-    <sequenceFlow id="sid-3786433f-15b7-488d-ad01-09f81e86e4e0" sourceRef="sendRejectionMail" targetRef="rejectEnd"/>
+    <receiveTask id="waitTask" name="waitTask"/>
+    <sequenceFlow id="sid-619692aa-cff9-42f7-b1dc-53ccbc379612" sourceRef="waitTask" targetRef="approveEnd"/>
+    <endEvent id="approveEnd"/>
+    <receiveTask id="rejectWaitTask" name="rejectWaitTask"/>
+    <sequenceFlow id="sid-cc6cbf12-95fc-4f61-be4d-3ef4edbda40d" sourceRef="sendRejectionMail" targetRef="rejectWaitTask"/>
+    <sequenceFlow id="sid-336df1b0-8511-4c4c-9558-842debd8af94" sourceRef="rejectWaitTask" targetRef="rejectEnd"/>
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_holiday-request">
     <bpmndi:BPMNPlane bpmnElement="holiday-request" id="BPMNPlane_holiday-request">
@@ -48,12 +52,12 @@
         <omgdi:waypoint x="297.17825" y="-75.75"/>
       </bpmdi:BPMNEdge>
       <bpmdi:BPMNShape xmlns:bpmdi="http://www.omg.org/spec/BPMN/20100524/DI" id="shape-febc43f6-395c-472b-9382-95f616cffbb0" bpmnElement="sendRejectionMail">
-        <omgdc:Bounds x="307.61398" y="53.393845" width="100.0" height="80.0"/>
+        <omgdc:Bounds x="312.61398" y="53.393845" width="100.0" height="80.0"/>
       </bpmdi:BPMNShape>
       <bpmdi:BPMNEdge xmlns:bpmdi="http://www.omg.org/spec/BPMN/20100524/DI" id="edge-68aeb7ac-1fc3-464d-b716-2e014192028a" bpmnElement="sid-a0598119-ab4c-4d34-835e-84630885d746">
         <omgdi:waypoint x="220.13374" y="-55.75"/>
         <omgdi:waypoint x="220.13376" y="93.39384"/>
-        <omgdi:waypoint x="307.61398" y="93.393845"/>
+        <omgdi:waypoint x="312.61398" y="93.393845"/>
       </bpmdi:BPMNEdge>
       <bpmdi:BPMNShape xmlns:bpmdi="http://www.omg.org/spec/BPMN/20100524/DI" id="shape-37c410ed-1f42-4579-85b9-47743439e604" bpmnElement="holidayApprovedTask">
         <omgdc:Bounds x="524.76624" y="-115.75" width="100.0" height="80.0"/>
@@ -62,20 +66,34 @@
         <omgdi:waypoint x="397.17825" y="-75.75"/>
         <omgdi:waypoint x="524.76624" y="-75.75"/>
       </bpmdi:BPMNEdge>
-      <bpmdi:BPMNShape xmlns:bpmdi="http://www.omg.org/spec/BPMN/20100524/DI" id="shape-17000abf-2783-4e08-b032-6790f89d5ace" bpmnElement="approveEnd">
-        <omgdc:Bounds x="700.53326" y="-90.75" width="30.0" height="30.0"/>
-      </bpmdi:BPMNShape>
       <bpmdi:BPMNEdge xmlns:bpmdi="http://www.omg.org/spec/BPMN/20100524/DI" id="edge-a1bce2bf-77da-486e-bf65-fd35352d3321" bpmnElement="sid-c3716340-ab4d-4efb-8b6d-7e86e9fc092a">
         <omgdi:waypoint x="624.76624" y="-75.75"/>
-        <omgdi:waypoint x="700.53326" y="-75.75"/>
+        <omgdi:waypoint x="720.53326" y="-75.75"/>
       </bpmdi:BPMNEdge>
       <bpmdi:BPMNShape xmlns:bpmdi="http://www.omg.org/spec/BPMN/20100524/DI" id="shape-03d6e013-787c-4483-9ece-7b9b2a6d6a09" bpmnElement="rejectEnd">
-        <omgdc:Bounds x="530.7583" y="78.39384" width="30.0" height="30.0"/>
+        <omgdc:Bounds x="735.7583" y="78.393845" width="30.0" height="30.0"/>
       </bpmdi:BPMNShape>
-      <bpmdi:BPMNEdge xmlns:bpmdi="http://www.omg.org/spec/BPMN/20100524/DI" id="edge-aed78224-a994-446f-8577-283a74d7cda6" bpmnElement="sid-3786433f-15b7-488d-ad01-09f81e86e4e0">
-        <omgdi:waypoint x="407.61398" y="93.393845"/>
-        <omgdi:waypoint x="530.7583" y="93.39384"/>
-      </bpmdi:BPMNEdge>
+      <bpmndi:BPMNShape id="shape-a5710257-c6a4-4a23-8ff1-5bbcc00ac3c6" bpmnElement="waitTask">
+        <omgdc:Bounds x="725.0" y="-115.75" width="100.0" height="80.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="edge-28ce51ef-250e-49c2-a88f-67ca6867c2a9" bpmnElement="sid-619692aa-cff9-42f7-b1dc-53ccbc379612">
+        <omgdi:waypoint x="825.00006" y="-75.75001"/>
+        <omgdi:waypoint x="944.99994" y="-75.75"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="shape-0285a59a-bd3d-480a-90cb-8a2986a2b69a" bpmnElement="approveEnd">
+        <omgdc:Bounds x="950.0" y="-90.75" width="30.0" height="30.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape-ed803b38-f21e-4b1d-bd89-9180d63ac915" bpmnElement="rejectWaitTask">
+        <omgdc:Bounds x="524.76624" y="53.393845" width="100.0" height="80.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="edge-b9ea5d5d-bb1c-4612-992b-48a5f42119d2" bpmnElement="sid-cc6cbf12-95fc-4f61-be4d-3ef4edbda40d">
+        <omgdi:waypoint x="412.61398" y="93.393845"/>
+        <omgdi:waypoint x="524.76624" y="93.393845"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="edge-a6e10e64-e0d5-452c-b73b-ca69c578bb13" bpmnElement="sid-336df1b0-8511-4c4c-9558-842debd8af94">
+        <omgdi:waypoint x="624.76624" y="93.393845"/>
+        <omgdi:waypoint x="735.7583" y="93.393845"/>
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </definitions>
