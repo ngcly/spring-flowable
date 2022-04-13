@@ -2,10 +2,18 @@ server:
   port: 9092
 spring:
   datasource:
-    driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/spring_flowable
-    username: postgres
-    password: 123456
-
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driverClassName: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+  sql:
+    init:
+      platform: h2
 flowable:
   async-executor-activate: false

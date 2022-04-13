@@ -79,6 +79,15 @@ public class FlowableService {
         return restResponse.createTaskResponseList(list);
     }
 
+    public TaskResponse getTask(String instanceId) {
+        Task task = taskService.createTaskQuery().processInstanceId(instanceId).singleResult();
+        if(task == null) {
+            return null;
+        }
+        RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
+        return restResponse.createTaskResponse(task);
+    }
+
     public List<ExecutionResponse> getExecution(String instanceId) {
         List<Execution> list = runtimeService.createExecutionQuery().processInstanceId(instanceId).list();
         RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
