@@ -2,12 +2,15 @@ package com.cn.springflowable.service;
 
 import net.bytebuddy.utility.RandomString;
 import org.flowable.engine.*;
+import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.engine.test.Deployment;
 import org.flowable.engine.test.FlowableTest;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
+import org.flowable.task.service.impl.persistence.entity.TaskEntityImpl;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.BeanUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -76,4 +79,31 @@ public class FlowableServiceTest {
         tasks.forEach(task -> System.out.println(task.getId()+": "+task.getName()));
     }
 
+    @Test
+    @Deployment(resources = { "processes/holiday-request.bpmn20.xml" })
+    void test_getTask(RuntimeService runtimeService, TaskService taskService){
+        Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
+
+        runtimeService
+                .createChangeActivityStateBuilder()
+                .processInstanceId(processInstanceId)
+                .moveActivityIdTo(task.getTaskDefinitionKey(), "rejectWaitTask")
+                .changeState();
+
+        List<ActivityInstance> activities = runtimeService.createActivityInstanceQuery()
+                .processInstanceId(processInstanceId)
+                .activityType("receiveTask")
+                .orderByActivityInstanceEndTime()
+                .desc()
+                .list();
+
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
+
+        Assertions.assertNotNull(activities);
+        ActivityInstance instance = activities.get(0);
+        Task actResponse = new TaskEntityImpl();
+        BeanUtils.copyProperties(instance, actResponse);
+
+        activities.forEach(activity -> System.out.println(activity.getId()+": "+activity.getActivityName()));
+    }
 }

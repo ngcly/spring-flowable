@@ -1,10 +1,8 @@
 package com.cn.springflowable.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
-import org.flowable.bpmn.model.Activity;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.EndEvent;
 import org.flowable.engine.*;
@@ -17,6 +15,7 @@ import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.engine.task.Comment;
 import org.flowable.image.ProcessDiagramGenerator;
 import org.flowable.rest.service.api.RestResponseFactory;
+import org.flowable.rest.service.api.engine.CommentResponse;
 import org.flowable.rest.service.api.runtime.process.ExecutionResponse;
 import org.flowable.rest.service.api.runtime.process.ProcessInstanceResponse;
 import org.flowable.rest.service.api.runtime.task.TaskResponse;
@@ -27,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -44,6 +44,7 @@ public class FlowableService {
     private final RepositoryService repositoryService;
     private final ProcessEngine processEngine;
     private final IdentityService identityService;
+    private final RestResponseFactory restResponse;
 
     /**
      * 流程启动开始
@@ -59,14 +60,23 @@ public class FlowableService {
         return processInstance.getId();
     }
 
+    /**
+     * 获取流程实例
+     * @param instanceId 流程id
+     * @return ProcessInstanceResponse
+     */
     public ProcessInstanceResponse getProcessInstance(String instanceId) {
-        RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
         ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
                 .processInstanceId(instanceId)
                 .singleResult();
         return restResponse.createProcessInstanceResponse(processInstance);
     }
 
+    /**
+     * 获取当前任务列表
+     * @param instanceId 流程id
+     * @return List<TaskResponse>
+     */
     public List<TaskResponse> getTaskList(String instanceId) {
         //此处直接这样返回 在controller层 会因为懒加载的问题导致格式化为json而报错 所以采用官方rest包装
         List<Task> list = taskService.createTaskQuery()
@@ -75,25 +85,37 @@ public class FlowableService {
                 .desc()
                 .list();
 
-        RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
         return restResponse.createTaskResponseList(list);
     }
 
+    /**
+     * 获取单个任务信息 如果流程当前有多个任务 则会抛异常
+     * @param instanceId 流程id
+     * @return TaskResponse
+     */
     public TaskResponse getTask(String instanceId) {
         Task task = taskService.createTaskQuery().processInstanceId(instanceId).singleResult();
         if(task == null) {
             return null;
         }
-        RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
         return restResponse.createTaskResponse(task);
     }
 
+    /**
+     * 获取当前流程正在执行信息 例如启动项、连接线、任务、活动、节点等
+     * @param instanceId 流程id
+     * @return List<ExecutionResponse>
+     */
     public List<ExecutionResponse> getExecution(String instanceId) {
         List<Execution> list = runtimeService.createExecutionQuery().processInstanceId(instanceId).list();
-        RestResponseFactory restResponse = new RestResponseFactory(new ObjectMapper());
         return restResponse.createExecutionResponseList(list);
     }
 
+    /**
+     * 获取当前活动列表
+     * @param instanceId 流程id
+     * @return List<ActivityInstance>
+     */
     public List<ActivityInstance> getActivity(String instanceId) {
         return runtimeService.createActivityInstanceQuery()
                 .processInstanceId(instanceId)
@@ -195,8 +217,8 @@ public class FlowableService {
      * @param instanceId 实例id
      * @return StreamingResponseBody
      */
-    @Transactional(rollbackFor = Exception.class)
-    public StreamingResponseBody getProcessDiagram(String instanceId) {
+    @Transactional(readOnly = true)
+    public StreamingResponseBody getProcessDiagram(String instanceId) throws IOException {
         ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
                 .processInstanceId(instanceId)
                 .singleResult();
@@ -236,12 +258,12 @@ public class FlowableService {
         ProcessEngineConfiguration processEngConfig = processEngine.getProcessEngineConfiguration();
         ProcessDiagramGenerator diagramGenerator = processEngConfig.getProcessDiagramGenerator();
 
-        InputStream in = diagramGenerator.generateDiagram(bpmnModel, "png", activeActivityIds,
+        try (InputStream in = diagramGenerator.generateDiagram(bpmnModel, "png", activeActivityIds,
                 highLightedFlows, processEngConfig.getActivityFontName(), processEngConfig.getLabelFontName(),
                 processEngConfig.getAnnotationFontName(), processEngConfig.getClassLoader(),
-                1.0, true);
-
-        return outputStream -> outputStream.write(in.readAllBytes());
+                1.0, true)){
+            return outputStream -> outputStream.write(in.readAllBytes());
+        }
     }
 
 
@@ -250,7 +272,7 @@ public class FlowableService {
      * @param id 流程定义id
      * @param key 流程定义key
      * @param name 流程定义名称
-     * @return
+     * @return List<ProcessDefinition>
      */
     public List<ProcessDefinition> getProcessDefinitionList(String id, String key, String name){
         return repositoryService.createProcessDefinitionQuery()
@@ -264,16 +286,13 @@ public class FlowableService {
      * 获取流程定义xml
      * @param id 流程定义id
      * @return String
-     * @throws Exception
+     * @throws IOException IO异常
      */
-    public String getXmlResource(String id) throws Exception {
+    public String getXmlResource(String id) throws IOException {
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(id).singleResult();
-        InputStream inputStream = repositoryService.getResourceAsStream(processDefinition.getDeploymentId(),
-                processDefinition.getResourceName());
-        try {
+        try (InputStream inputStream = repositoryService.getResourceAsStream(processDefinition.getDeploymentId(),
+                processDefinition.getResourceName())){
             return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-        }finally {
-            IOUtils.close(inputStream,null);
         }
     }
 
@@ -281,8 +300,9 @@ public class FlowableService {
      * 获取流程定义图片
      * @param definitionKey 流程定义key
      * @return StreamingResponseBody
+     * @throws IOException IO异常
      */
-    public StreamingResponseBody getResourceDiagram(String definitionKey){
+    public StreamingResponseBody getResourceDiagram(String definitionKey) throws IOException {
         List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery()
                 .processDefinitionKey(definitionKey)
                 .list();
@@ -293,10 +313,10 @@ public class FlowableService {
 
         ProcessDefinition processDefinition = processDefinitions.get(1);
 
-        InputStream inputStream = repositoryService.getResourceAsStream(processDefinition.getDeploymentId(),
-                processDefinition.getDiagramResourceName());
-
-        return outputStream -> outputStream.write(inputStream.readAllBytes());
+        try (InputStream inputStream = repositoryService.getResourceAsStream(processDefinition.getDeploymentId(),
+                processDefinition.getDiagramResourceName())){
+            return outputStream -> outputStream.write(inputStream.readAllBytes());
+        }
     }
 
     /**
@@ -318,17 +338,20 @@ public class FlowableService {
      * @param type 类型
      * @param message 意见信息
      */
-    public Comment addProcessComment(String taskId, String instanceId, String type, String message){
-        return taskService.addComment(taskId, instanceId,type, message);
+    @Transactional
+    public void addProcessComment(String taskId, String instanceId, String type, String message){
+        taskService.addComment(taskId, instanceId,type, message);
     }
 
     /**
      * 获取流程审批意见
      * @param instanceId 实例id
-     * @return List
+     * @return List<CommentResponse>
      */
-    public List<Comment> getProcessComments(String instanceId){
-        return taskService.getProcessInstanceComments(instanceId);
+    @Transactional
+    public List<CommentResponse> getProcessComments(String instanceId){
+        List<Comment> commentList = taskService.getProcessInstanceComments(instanceId);
+        return restResponse.createRestCommentList(commentList);
     }
 
     /**
@@ -346,7 +369,7 @@ public class FlowableService {
 
         /// 执行终止
         List<Execution> executions = runtimeService.createExecutionQuery().parentId(instanceId).list();
-        List<String> executionIds = executions.stream().map(v -> v.getId()).collect(Collectors.toList());
+        List<String> executionIds = executions.stream().map(Execution::getId).collect(Collectors.toList());
         // 获取流程结束点
         BpmnModel bpmnModel = repositoryService.getBpmnModel(processInstance.getProcessDefinitionId());
         List<EndEvent> endNodes = bpmnModel.getMainProcess().findFlowElementsOfType(EndEvent.class);

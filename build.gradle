@@ -1,12 +1,12 @@
 plugins {
-    id 'org.springframework.boot' version '2.6.4'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.springframework.boot' version '2.7.2'
+    id 'io.spring.dependency-management' version '1.0.12.RELEASE'
     id 'java'
 }
 
 group = 'com.cn'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+sourceCompatibility = '17'
 
 configurations {
     compileOnly {
@@ -22,13 +22,13 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.flowable:flowable-spring-boot-starter:6.7.2'
+    implementation 'org.flowable:flowable-spring-boot-starter-process:6.7.2'
     implementation 'org.flowable:flowable-spring-boot-starter-process-rest:6.7.2'
     implementation 'com.google.guava:guava:31.1-jre'
 
     compileOnly 'org.projectlombok:lombok'
 
-    runtimeOnly 'com.h2database:h2:2.1.210'
+    runtimeOnly 'com.h2database:h2:2.1.212'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
