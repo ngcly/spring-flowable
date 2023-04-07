@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author chenning
@@ -56,7 +55,14 @@ public class FlowableService {
     public String startProcess(String processKey, Map<String, Object> map) {
         //设置启动用户id
         identityService.setAuthenticatedUserId("cly");
-        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(processKey, map);
+//        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(processKey, map);
+        ProcessInstance processInstance = runtimeService.createProcessInstanceBuilder()
+                .processDefinitionKey(processKey)
+                .predefineProcessInstanceId(UUID.randomUUID().toString())
+                .name("test")
+                .overrideProcessDefinitionTenantId("test")
+                .variables(map)
+                .start();
         return processInstance.getId();
     }
 
@@ -243,7 +249,7 @@ public class FlowableService {
 
             activeActivityIds = historicEnds.stream()
                     .map(HistoricActivityInstance::getActivityId)
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         // 3.获取所有的历史轨迹线对象
@@ -252,7 +258,7 @@ public class FlowableService {
 
         List<String> highLightedFlows = historicActivityInstances.stream()
                 .map(HistoricActivityInstance::getActivityId)
-                .collect(Collectors.toList());
+                .toList();
 
         BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);
         ProcessEngineConfiguration processEngConfig = processEngine.getProcessEngineConfiguration();
@@ -369,7 +375,7 @@ public class FlowableService {
 
         /// 执行终止
         List<Execution> executions = runtimeService.createExecutionQuery().parentId(instanceId).list();
-        List<String> executionIds = executions.stream().map(Execution::getId).collect(Collectors.toList());
+        List<String> executionIds = executions.stream().map(Execution::getId).toList();
         // 获取流程结束点
         BpmnModel bpmnModel = repositoryService.getBpmnModel(processInstance.getProcessDefinitionId());
         List<EndEvent> endNodes = bpmnModel.getMainProcess().findFlowElementsOfType(EndEvent.class);

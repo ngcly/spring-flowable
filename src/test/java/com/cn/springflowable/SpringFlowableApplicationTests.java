@@ -38,20 +38,20 @@ class SpringFlowableApplicationTests {
     }
 
     @Test
-    public void startProcessTest() {
+    void startProcessTest() {
         Assertions.assertNotNull(instanceId);
         System.out.println(instanceId);
     }
 
     @Test
-    public void getTaskTest() {
+    void getTaskTest() {
         List<TaskResponse> tasks = flowableService.getTaskList(instanceId);
         Assertions.assertNotNull(tasks);
         tasks.forEach(task -> System.out.println(task.getId() + ": " + task.getName()));
     }
 
     @Test
-    public void historyTest() {
+    void historyTest() {
         List<HistoricActivityInstance> activities = flowableService.getActivityHistory(instanceId);
         Assertions.assertNotNull(activities);
         activities.forEach(activity -> System.out.println(activity.getActivityId() + " took "
@@ -59,7 +59,7 @@ class SpringFlowableApplicationTests {
     }
 
     @Test
-    public void taskApprovedTest() {
+    void taskApprovedTest() {
         TaskResponse task = flowableService.getTask(instanceId);
         flowableService.dealTask(task.getId(), Map.of("approved", true));
         TaskResponse approvedTask = flowableService.getTask(instanceId);
@@ -67,7 +67,7 @@ class SpringFlowableApplicationTests {
     }
 
     @Test
-    public void taskRejectTest() {
+    void taskRejectTest() {
         TaskResponse task = flowableService.getTask(instanceId);
         flowableService.dealTask(task.getId(), Map.of("approved", false));
         TaskResponse approvedTask = flowableService.getTask(instanceId);
@@ -75,7 +75,7 @@ class SpringFlowableApplicationTests {
     }
 
     @Test
-    public void skipTask() {
+    void skipTask() {
         String newKey = "holidayApprovedTask";
         Boolean flag = flowableService.skipTask(instanceId, newKey, Map.of("approved", true));
         Assertions.assertTrue(flag);

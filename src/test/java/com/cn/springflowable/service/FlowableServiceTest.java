@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author ngcly
  */
 @FlowableTest
-public class FlowableServiceTest {
+class FlowableServiceTest {
     private String processInstanceId;
 
     @BeforeAll
