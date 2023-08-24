@@ -2,6 +2,7 @@ package com.cn.springflowable.service;
 
 import net.bytebuddy.utility.RandomString;
 import org.flowable.engine.*;
+import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.engine.test.Deployment;
@@ -105,5 +106,19 @@ class FlowableServiceTest {
         BeanUtils.copyProperties(instance, actResponse);
 
         activities.forEach(activity -> System.out.println(activity.getId()+": "+activity.getActivityName()));
+    }
+
+    @Test
+    @Deployment(resources = { "processes/holiday-request.bpmn20.xml" })
+    void test_deleteProcesses(RuntimeService runtimeService, HistoryService historyService){
+        runtimeService.deleteProcessInstance(processInstanceId, "test");
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
+        Assertions.assertNull(processInstance);
+        HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
+                .processInstanceId(processInstanceId)
+                .deleted()
+                .singleResult();
+        Assertions.assertNotNull(historicProcessInstance);
+        Assertions.assertEquals(historicProcessInstance.getId(), processInstanceId);
     }
 }

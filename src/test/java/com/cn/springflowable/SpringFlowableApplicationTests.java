@@ -2,7 +2,7 @@ package com.cn.springflowable;
 
 import com.cn.springflowable.service.FlowableService;
 import net.bytebuddy.utility.RandomString;
-import org.flowable.engine.history.HistoricActivityInstance;
+import org.flowable.rest.service.api.history.HistoricActivityInstanceResponse;
 import org.flowable.rest.service.api.runtime.task.TaskResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ class SpringFlowableApplicationTests {
 
     @Test
     void historyTest() {
-        List<HistoricActivityInstance> activities = flowableService.getActivityHistory(instanceId);
+        List<HistoricActivityInstanceResponse> activities = flowableService.getActivityHistory(instanceId);
         Assertions.assertNotNull(activities);
         activities.forEach(activity -> System.out.println(activity.getActivityId() + " took "
                 + activity.getDurationInMillis() + " milliseconds"));

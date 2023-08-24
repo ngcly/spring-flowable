@@ -7,6 +7,8 @@ import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.rest.service.api.engine.CommentResponse;
+import org.flowable.rest.service.api.history.HistoricActivityInstanceResponse;
+import org.flowable.rest.service.api.history.HistoricProcessInstanceResponse;
 import org.flowable.rest.service.api.runtime.process.ExecutionResponse;
 import org.flowable.rest.service.api.runtime.process.ProcessInstanceResponse;
 import org.flowable.rest.service.api.runtime.task.TaskResponse;
@@ -130,7 +132,7 @@ public class ProcessController {
      * @return List
      */
     @GetMapping("/process/history/{userId}")
-    public List<HistoricProcessInstance> getProcessInstanceHistory(@PathVariable String userId) {
+    public List<HistoricProcessInstanceResponse> getProcessInstanceHistory(@PathVariable String userId) {
         return flowableService.getProcessInstanceHistory(userId);
     }
 
@@ -140,7 +142,7 @@ public class ProcessController {
      * @return List
      */
     @GetMapping("/activity/history/{instanceId}")
-    public List<HistoricActivityInstance> getActivityHistory(@PathVariable String instanceId) {
+    public List<HistoricActivityInstanceResponse> getActivityHistory(@PathVariable String instanceId) {
         return flowableService.getActivityHistory(instanceId);
     }
 

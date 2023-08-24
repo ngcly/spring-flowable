@@ -16,6 +16,8 @@ import org.flowable.engine.task.Comment;
 import org.flowable.image.ProcessDiagramGenerator;
 import org.flowable.rest.service.api.RestResponseFactory;
 import org.flowable.rest.service.api.engine.CommentResponse;
+import org.flowable.rest.service.api.history.HistoricActivityInstanceResponse;
+import org.flowable.rest.service.api.history.HistoricProcessInstanceResponse;
 import org.flowable.rest.service.api.runtime.process.ExecutionResponse;
 import org.flowable.rest.service.api.runtime.process.ProcessInstanceResponse;
 import org.flowable.rest.service.api.runtime.task.TaskResponse;
@@ -183,12 +185,12 @@ public class FlowableService {
      * @param userId 用户id
      * @return List
      */
-    public List<HistoricProcessInstance> getProcessInstanceHistory(String userId) {
-        return historyService.createHistoricProcessInstanceQuery()
+    public List<HistoricProcessInstanceResponse> getProcessInstanceHistory(String userId) {
+        return restResponse.createHistoricProcessInstanceResponseList(historyService.createHistoricProcessInstanceQuery()
                 .startedBy(userId)
                 .orderByProcessInstanceStartTime()
                 .asc()
-                .list();
+                .list());
     }
 
     /**
@@ -196,13 +198,13 @@ public class FlowableService {
      * @param instanceId 实例id
      * @return List
      */
-    public List<HistoricActivityInstance> getActivityHistory(String instanceId) {
-        return historyService.createHistoricActivityInstanceQuery()
+    public List<HistoricActivityInstanceResponse> getActivityHistory(String instanceId) {
+        return restResponse.createHistoricActivityInstanceResponseList(historyService.createHistoricActivityInstanceQuery()
                 .processInstanceId(instanceId)
                 .finished()
                 .orderByHistoricActivityInstanceEndTime()
                 .asc()
-                .list();
+                .list());
     }
 
     /**
